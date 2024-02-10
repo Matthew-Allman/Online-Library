@@ -8,6 +8,24 @@ dotenv.config();
 
 const { propagateBooktable } = require("./utils/fill-book-table");
 
+const middleware = {
+  testFunction: function (req, res, next) {
+    let condition =
+      typeof req.headers.origin === "string"
+        ? req.headers.origin.includes(process.env.FRONTEND_URL)
+        : false;
+
+    if (condition) {
+      next();
+    } else {
+      res.send({
+        status: 403,
+        data: "You do not have the correct permissions to use this route.",
+      });
+    }
+  },
+};
+
 const app = express();
 app.use(express.json());
 app.use(
@@ -17,6 +35,8 @@ app.use(
     credentials: true,
   })
 );
+
+app.use(middleware.testFunction);
 
 app.use(cookieParser());
 app.use(bodyParser.urlencoded({ extended: true }));
