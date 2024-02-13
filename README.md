@@ -19,9 +19,9 @@ Before running OnlineLibrary, ensure you have the following installed:
 
 - [Node.js and npm](https://nodejs.org/)
 - [MySQL](https://dev.mysql.com/doc/mysql-installation-excerpt/5.7/en/)
-- [Google Cloud Platform](https://cloud.google.com/)
+- [Google Cloud Platform](https://console.cloud.google.com/)
 
-### Google Cloud Platform Configuration
+### Google Cloud Console Configuration
 
 1. Enable the following scopes for the web application OAuth 2.0 client ID on Google Cloud Platform:
    - `userInfo.email`
@@ -32,7 +32,7 @@ Before running OnlineLibrary, ensure you have the following installed:
 
 1. Clone the repository:
    ```bash
-   git clone https://github.com/your-username/OnlineLibrary.git
+   git clone https://github.com/matthew-allman/OnlineLibrary.git
    cd OnlineLibrary
 
 2. Start terminals for frontend and backend:
