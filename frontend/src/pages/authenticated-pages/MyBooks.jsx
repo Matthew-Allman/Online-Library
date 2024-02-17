@@ -76,6 +76,8 @@ const MyBooks = () => {
   const [ownedBooks, setOwnedBooks] = useState([]);
   const [activeTab, setActiveTab] = useState(false);
 
+  // console.log(accountInfo);
+
   // Function to log user out then redirect to sign in page
   //
   const handleLogout = async () => {
@@ -169,16 +171,178 @@ const MyBooks = () => {
       });
   };
 
+  const handleAccept = async (item) => {
+    const body = {
+      userID: id,
+      ISBN: item.ISBN,
+      message: "yes",
+    };
+
+    await Axios.post(`${API_URL}/receival-confirmation`, body)
+      .then(async (response) => {
+        if (response.data.successMessage) {
+          setGlobalType(true);
+          setGlobalText(response.data.successMessage);
+          setGlobalDisplay(true);
+
+          await Axios.get(`${API_URL}/sign-in`)
+            .then((response) => {
+              if (response.data.user) {
+                setAccountInfo(response.data.user);
+              } else {
+                navigate("/");
+              }
+            })
+            .catch(() => navigate("/"));
+        } else if (response.data.errMessage) {
+          setGlobalType(false);
+          setGlobalText(response.data.errMessage);
+          setGlobalDisplay(true);
+        }
+      })
+      .catch(() => {
+        setGlobalType(false);
+        setGlobalText("Something went wrong, please try again.");
+        setGlobalDisplay(true);
+      });
+  };
+
+  const handleDeny = async (item) => {
+    const body = {
+      userID: id,
+      ISBN: item.ISBN,
+      message: "no",
+    };
+
+    await Axios.post(`${API_URL}/receival-confirmation`, body)
+      .then(async (response) => {
+        if (response.data.successMessage) {
+          setGlobalType(true);
+          setGlobalText(response.data.successMessage);
+          setGlobalDisplay(true);
+
+          await Axios.get(`${API_URL}/sign-in`)
+            .then((response) => {
+              if (response.data.user) {
+                setAccountInfo(response.data.user);
+              } else {
+                // console.log(response.data);
+                navigate("/");
+              }
+            })
+            .catch(() => navigate("/"));
+        } else if (response.data.errMessage) {
+          setGlobalType(false);
+          setGlobalText(response.data.errMessage);
+          setGlobalDisplay(true);
+        }
+      })
+      .catch(() => {
+        setGlobalType(false);
+        setGlobalText("Something went wrong, please try again.");
+        setGlobalDisplay(true);
+      });
+  };
+
+  const handleCancel = async (item) => {
+    const body = {
+      userID: id,
+      ISBN: item.ISBN,
+      email: email,
+    };
+
+    await Axios.post(`${API_URL}/cancel-delivery`, body)
+      .then(async (response) => {
+        if (response.data.successMessage) {
+          setGlobalType(true);
+          setGlobalText(response.data.successMessage);
+          setGlobalDisplay(true);
+
+          await Axios.get(`${API_URL}/sign-in`)
+            .then((response) => {
+              if (response.data.user) {
+                setAccountInfo(response.data.user);
+              } else {
+                // console.log(response.data);
+                navigate("/");
+              }
+            })
+            .catch(() => navigate("/"));
+        } else if (response.data.errMessage) {
+          setGlobalType(false);
+          setGlobalText(response.data.errMessage);
+          setGlobalDisplay(true);
+        }
+      })
+      .catch(() => {
+        setGlobalType(false);
+        setGlobalText("Something went wrong, please try again.");
+        setGlobalDisplay(true);
+      });
+  };
+
+  const handleClear = async (item) => {
+    const body = {
+      userID: id,
+      ISBN: item.ISBN,
+    };
+
+    await Axios.post(`${API_URL}/clear-item`, body)
+      .then(async (response) => {
+        if (response.data.successMessage) {
+          setGlobalType(true);
+          setGlobalText(response.data.successMessage);
+          setGlobalDisplay(true);
+
+          await Axios.get(`${API_URL}/sign-in`)
+            .then((response) => {
+              if (response.data.user) {
+                setAccountInfo(response.data.user);
+              } else {
+                // console.log(response.data);
+                navigate("/");
+              }
+            })
+            .catch(() => navigate("/"));
+        } else if (response.data.errMessage) {
+          setGlobalType(false);
+          setGlobalText(response.data.errMessage);
+          setGlobalDisplay(true);
+        }
+      })
+      .catch(() => {
+        setGlobalType(false);
+        setGlobalText("Something went wrong, please try again.");
+        setGlobalDisplay(true);
+      });
+  };
+
   useEffect(() => {
-    setPhotoUrl(accountInfo.photoUrl);
+    setPhotoUrl(accountInfo.photoUrl || "");
   }, []);
 
   useEffect(() => {
     if (typeof accountInfo === "object" && Array.isArray(data)) {
       if (accountInfo.books) {
-        setOwnedBooks(
-          data.filter((item) => accountInfo.books.includes(item.ISBN)) || []
-        );
+        let books = data.map((item) => {
+          let obj = {};
+
+          accountInfo.books.map((elem) => {
+            if (elem.ISBN == item.ISBN) {
+              console.log(item);
+
+              obj = { status: elem.status, ...item };
+            }
+          });
+
+          if (Object.values(obj).length > 0) {
+            return obj;
+          }
+        });
+
+        books = books.filter((item) => item);
+
+        setOwnedBooks(books);
       } else {
         setOwnedBooks([]);
       }
@@ -188,9 +352,25 @@ const MyBooks = () => {
   useEffect(() => {
     if (typeof accountInfo === "object" && Array.isArray(data)) {
       if (accountInfo.books) {
-        setOwnedBooks(
-          data.filter((item) => accountInfo.books.includes(item.ISBN)) || []
-        );
+        let books = data.map((item) => {
+          let obj = {};
+
+          accountInfo.books.map((elem) => {
+            if (elem.ISBN == item.ISBN) {
+              console.log(item);
+
+              obj = { status: elem.status, ...item };
+            }
+          });
+
+          if (Object.values(obj).length > 0) {
+            return obj;
+          }
+        });
+
+        books = books.filter((item) => item);
+
+        setOwnedBooks(books);
       } else {
         setOwnedBooks([]);
       }
@@ -322,13 +502,76 @@ const MyBooks = () => {
                           Preview Book
                         </a>
                       </span>
-                      <button
-                        onClick={() => handleReturn(item)}
-                        // onClick={handleLogout}
-                        className="w-[150px] h-auto bg-red-500 hover:bg-red-600 px-3 py-2 rounded-md text-white font-medium mt-4"
-                      >
-                        Return
-                      </button>
+                      {item.status == "PENDING" ? (
+                        <button
+                          onClick={() => handleCancel(item)}
+                          // onClick={handleLogout}
+                          className="w-[150px] h-auto bg-red-500 hover:bg-red-600 px-3 py-2 rounded-md text-white font-medium mt-4"
+                        >
+                          Cancel Delivery
+                        </button>
+                      ) : item.status == "DELIVERED" ? (
+                        <span
+                          // onClick={() => handleReturn(item)}
+                          // onClick={handleLogout}
+                          className="w-auto flex flex-row items-center justify-center h-auto gap-x-4 mt-3"
+                        >
+                          <p className="text-[15px] text-gray font-medium">
+                            Did you receive this book yet?
+                          </p>
+                          <button
+                            onClick={() => handleAccept(item)}
+                            className="px-4 py-1 rounded-md bg-green hover:bg-darkGreen text-white font-medium text-[14px]"
+                          >
+                            Yes
+                          </button>
+                          <button
+                            onClick={() => handleDeny(item)}
+                            className="px-4 py-1 rounded-md bg-red-500 hover:bg-red-600 text-white font-medium text-[14px]"
+                          >
+                            No
+                          </button>
+                        </span>
+                      ) : item.status == "RECEIVED" ? (
+                        <button
+                          onClick={() => handleReturn(item)}
+                          className="w-[150px] h-auto bg-red-500 px-3 py-2 rounded-md text-white font-medium mt-4 flex items-center justify-center"
+                        >
+                          Return
+                        </button>
+                      ) : item.status == "NOT RECEIVED" ? (
+                        <span className="w-auto flex flex-row items-center justify-center h-auto gap-x-4 mt-3">
+                          <p className="text-[15px] text-gray font-medium">
+                            Our systems are verifying if this book has been
+                            returned to us.
+                          </p>
+                        </span>
+                      ) : item.status == "NOT DELIVERED" ? (
+                        <span
+                          // onClick={() => handleReturn(item)}
+                          // onClick={handleLogout}
+                          className="w-auto flex flex-row items-center justify-center h-auto gap-x-4 mt-3"
+                        >
+                          <p className="text-[15px] text-gray font-medium">
+                            We apologize for the inconvenience. This delivery
+                            has been canceled.
+                          </p>
+
+                          <button
+                            onClick={() => handleClear(item)}
+                            className="w-[100px] h-auto bg-red-500 px-3 py-2 rounded-md bg-red-500 hover:bg-red-600 text-white font-medium text-[14px]"
+                          >
+                            Clear item
+                          </button>
+                        </span>
+                      ) : (
+                        <span className="w-auto flex flex-row items-center justify-center h-auto gap-x-4 mt-3">
+                          <p className="text-[15px] text-gray font-medium">
+                            Unable to borrow this book, as you have canceled a
+                            previous order.
+                          </p>
+                        </span>
+                      )}
                     </div>
                   </div>
                 </span>

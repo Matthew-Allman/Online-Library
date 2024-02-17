@@ -60,7 +60,7 @@ const Dashboard = () => {
     setGlobalText,
     setGlobalDisplay,
   } = useGlobalContext();
-  const { mailingAddress, email, id } = accountInfo;
+  const { mailingAddress, email, id, zipCode, city } = accountInfo;
 
   const API_URL = import.meta.env.VITE_APP_API_URL;
 
@@ -73,7 +73,13 @@ const Dashboard = () => {
       .catch((err) => console.log(err));
   });
 
-  const [ownedBooks, setOwnedBooks] = useState(accountInfo.books || []);
+  const [ownedBooks, setOwnedBooks] = useState(
+    accountInfo.books
+      ? accountInfo.books.map((item) => {
+          return item.ISBN;
+        }) || []
+      : []
+  );
   const [activeTab, setActiveTab] = useState(false);
 
   // Function to log user out then redirect to sign in page
@@ -139,7 +145,15 @@ const Dashboard = () => {
       setGlobalDisplay(true);
     } else {
       const url = API_URL + "/checkout";
-      const body = { userID: id, ISBN: item.ISBN };
+
+      const body = {
+        userID: id,
+        ISBN: item.ISBN,
+        email: email,
+        mailingAddress: mailingAddress,
+        zipCode: zipCode,
+        city: city,
+      };
 
       await Axios.post(url, body)
         .then(async (response) => {
@@ -176,43 +190,43 @@ const Dashboard = () => {
     }
   };
 
-  const handleReturn = async (item) => {
-    const url = API_URL + "/return";
-    const body = { userID: id, ISBN: item.ISBN };
+  // const handleReturn = async (item) => {
+  //   const url = API_URL + "/return";
+  //   const body = { userID: id, ISBN: item.ISBN };
 
-    await Axios.post(url, body)
-      .then(async (response) => {
-        if (response.data.successMessage) {
-          setGlobalType(true);
-          setGlobalText(response.data.successMessage);
+  //   await Axios.post(url, body)
+  //     .then(async (response) => {
+  //       if (response.data.successMessage) {
+  //         setGlobalType(true);
+  //         setGlobalText(response.data.successMessage);
 
-          await Axios.get(`${API_URL}/sign-in`)
-            .then((response) => {
-              if (response.data.user) {
-                setAccountInfo(response.data.user);
-              } else {
-                // console.log(response.data);
-                navigate("/");
-              }
-            })
-            .catch(() => navigate("/"));
+  //         await Axios.get(`${API_URL}/sign-in`)
+  //           .then((response) => {
+  //             if (response.data.user) {
+  //               setAccountInfo(response.data.user);
+  //             } else {
+  //               // console.log(response.data);
+  //               navigate("/");
+  //             }
+  //           })
+  //           .catch(() => navigate("/"));
 
-          await Axios.get(API_URL + "/get-books")
-            .then((response) => setData(response.data))
-            .catch((err) => console.log(err));
-        } else if (response.data.errMessage) {
-          setGlobalType(false);
-          setGlobalText(response.data.errMessage);
-        }
-        setGlobalDisplay(true);
-      })
-      .catch((err) => {
-        console.log(err);
-        setGlobalType(false);
-        setGlobalText("An error has occurred, please try again.");
-        setGlobalDisplay(true);
-      });
-  };
+  //         await Axios.get(API_URL + "/get-books")
+  //           .then((response) => setData(response.data))
+  //           .catch((err) => console.log(err));
+  //       } else if (response.data.errMessage) {
+  //         setGlobalType(false);
+  //         setGlobalText(response.data.errMessage);
+  //       }
+  //       setGlobalDisplay(true);
+  //     })
+  //     .catch((err) => {
+  //       console.log(err);
+  //       setGlobalType(false);
+  //       setGlobalText("An error has occurred, please try again.");
+  //       setGlobalDisplay(true);
+  //     });
+  // };
 
   useEffect(() => {
     setPhotoUrl(accountInfo.photoUrl);
@@ -220,7 +234,13 @@ const Dashboard = () => {
 
   useEffect(() => {
     if (typeof accountInfo === "object") {
-      setOwnedBooks(accountInfo.books || []);
+      setOwnedBooks(
+        accountInfo.books
+          ? accountInfo.books.map((item) => {
+              return item.ISBN;
+            }) || []
+          : []
+      );
     }
   }, [accountInfo]);
 
@@ -350,13 +370,9 @@ const Dashboard = () => {
                         </a>
                       </span>
                       {ownedBooks.includes(item.ISBN) ? (
-                        <button
-                          onClick={() => handleReturn(item)}
-                          // onClick={handleLogout}
-                          className="w-[150px] h-auto bg-red-500 hover:bg-red-600 px-3 py-2 rounded-md text-white font-medium mt-4"
-                        >
-                          Return
-                        </button>
+                        <span className="w-[150px] h-auto bg-red-500 px-3 py-2 rounded-md text-white font-medium mt-4 flex items-center justify-center">
+                          Owned
+                        </span>
                       ) : (
                         <span>
                           {(!mailingAddress || item.inventory == 0) && (

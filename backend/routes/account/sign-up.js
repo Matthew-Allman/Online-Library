@@ -43,7 +43,7 @@ router.route("/").post(async (req, res) => {
     let exitFlag = false;
     let count = 0;
 
-    const userID = generateRandomUserID();
+    let userID = generateRandomUserID();
 
     while (!exitFlag) {
       await db

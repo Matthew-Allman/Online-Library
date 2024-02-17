@@ -57,12 +57,12 @@ router.route("/").get(async (req, res) => {
 
           await db
             .promise()
-            .query(`SELECT ISBN FROM UserBook WHERE userID = '${userObj.id}'`)
+            .query(
+              `SELECT ISBN, status FROM UserBook WHERE userID = '${userObj.id}'`
+            )
             .then((response) => {
               if (response[0].length > 0) {
-                const books = response[0].map((item) => {
-                  return item.ISBN;
-                });
+                const books = response[0];
 
                 userObj.books = books;
               }

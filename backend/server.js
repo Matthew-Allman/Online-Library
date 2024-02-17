@@ -6,16 +6,20 @@ const session = require("express-session");
 const dotenv = require("dotenv");
 dotenv.config();
 
-const { propagateBooktable } = require("./utils/fill-book-table");
+const { propagateBookTable } = require("./utils/fill-book-table");
+const { propagateCityTable } = require("./utils/fill-cities-table");
+const { propogateDriverTable } = require("./utils/fill-driver-table");
 
 const middleware = {
   testFunction: function (req, res, next) {
+    const reqUrl = req.originalUrl;
+
     let condition =
       typeof req.headers.origin === "string"
         ? req.headers.origin.includes(process.env.FRONTEND_URL)
         : false;
 
-    if (condition) {
+    if (condition || reqUrl == "/inbound-messages") {
       next();
     } else {
       res.send({
@@ -73,13 +77,31 @@ app.use("/complete-profile", completeProfile);
 const getBooks = require("./routes/library/get-books");
 app.use("/get-books", getBooks);
 
+const getCities = require("./routes/library/get-cities");
+app.use("/get-cities", getCities);
+
 const checkoutBook = require("./routes/library/checkout-book");
 app.use("/checkout", checkoutBook);
 
 const returnBook = require("./routes/library/return-book");
 app.use("/return", returnBook);
 
+const inboundMessages = require("./routes/sms/inbound-messages");
+app.use("/inbound-messages", inboundMessages);
+
+const confirmation = require("./routes/library/receival-confirmation");
+app.use("/receival-confirmation", confirmation);
+
+const cancelDelivery = require("./routes/library/cancel-delivery");
+app.use("/cancel-delivery", cancelDelivery);
+
+const clearItem = require("./routes/library/clear-item");
+app.use("/clear-item", clearItem);
+
 app.listen(process.env.PORT, async () => {
   console.log("Server running on port: " + process.env.PORT);
-  await propagateBooktable();
+
+  // await propagateBookTable();
+  // await propagateCityTable();
+  // await propogateDriverTable();
 });

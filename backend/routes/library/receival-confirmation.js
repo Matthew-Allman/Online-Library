@@ -6,34 +6,40 @@ const { getTimeStamp } = require("../../functions/generate-timestamp");
 router.route("/").post(async (req, res) => {
   const userID = req.body.userID;
   const ISBN = req.body.ISBN;
+  const message = req.body.message;
 
   await db
     .promise()
     .query(
-      `DELETE FROM UserBook WHERE userID = '${userID}' AND ISBN = '${ISBN}'`
+      `UPDATE UserBook SET status = '${
+        message == "yes" ? "RECEIVED" : "NOT RECEIVED"
+      }' WHERE userID = '${userID}' AND ISBN = '${ISBN}' AND status = 'DELIVERED'`
     )
     .then(async (response) => {
       if (response[0].affectedRows > 0) {
-        await db
-          .promise()
-          .query(
-            `UPDATE Book SET inventory = inventory + 1 WHERE ISBN = '${ISBN}'`
-          )
-          .catch((err) => {
-            console.log(err);
+        if (message == "yes") {
+          res.send({ successMessage: "Thank you for the confirmation." });
+        } else {
+          res.send({
+            errMessage:
+              "Sorry for the inconvenience. Please verify that your mailing address is correct.",
           });
+        }
 
         await db
           .promise()
           .query(
             `INSERT INTO ActionHistory (userID, ISBN, date, action) VALUES (?, ?, ?, ?)`,
-            [userID, ISBN, getTimeStamp(), "RETURNED"]
+            [
+              userID,
+              ISBN,
+              getTimeStamp(),
+              `${message == "yes" ? "RECEIVED" : "NOT RECEIVED"}`,
+            ]
           )
           .catch((err) => {
             console.log(err);
           });
-
-        res.send({ successMessage: `You have returned: ${ISBN}.` });
       } else {
         res.sendStatus(404);
       }

@@ -1,7 +1,7 @@
 const { db } = require("./database");
 const { getBooks } = require("../functions/get-books");
 
-const propagateBooktable = async () => {
+const propagateBookTable = async () => {
   console.log("\nClearing Book table.");
 
   await db
@@ -67,4 +67,4 @@ const propagateBooktable = async () => {
   }
 };
 
-module.exports = { propagateBooktable };
+module.exports = { propagateBookTable };

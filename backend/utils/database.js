@@ -33,26 +33,27 @@ let sqlStr = `CREATE TABLE IF NOT EXISTS User (
     PRIMARY KEY (id),
     UNIQUE INDEX email_UNIQUE (email ASC));`;
 
-sqlStr += `CREATE TABLE IF NOT EXISTS UserInformation (
+sqlStr += `\nCREATE TABLE IF NOT EXISTS UserInformation (
         userID INT NOT NULL,
         firstName VARCHAR(20) NOT NULL,
         lastName VARCHAR(20) NOT NULL,
         photoUrl TEXT,
         mailingAddress VARCHAR(50),
         zipCode VARCHAR(10),
-        province VARCHAR(50),
-        city VARCHAR(50),
+        province VARCHAR(50) DEFAULT 'Ontario',
+        city VARCHAR(100),
+        Country VARCHAR(20) DEFAULT 'Canada', 
         PRIMARY KEY (userID),
         FOREIGN KEY(userID) REFERENCES User(id) ON DELETE CASCADE);`;
 
-sqlStr += `CREATE TABLE IF NOT EXISTS SignInHistory (
+sqlStr += `\nCREATE TABLE IF NOT EXISTS SignInHistory (
     historyID INT AUTO_INCREMENT,
     userID INT NOT NULL,
     date VARCHAR(50) NOT NULL,
     PRIMARY KEY (historyID),
     FOREIGN KEY(userID) REFERENCES User(id) ON DELETE CASCADE);`;
 
-sqlStr += `CREATE TABLE IF NOT EXISTS Book (
+sqlStr += `\nCREATE TABLE IF NOT EXISTS Book (
   ISBN VARCHAR(13) NOT NULL,
   title TEXT NOT NULL,
   subTitle TEXT,
@@ -67,7 +68,49 @@ sqlStr += `CREATE TABLE IF NOT EXISTS Book (
   PRIMARY KEY (ISBN)
 );`;
 
-sqlStr += `CREATE TABLE IF NOT EXISTS BorrowHistory (
+sqlStr += `\nCREATE TABLE IF NOT EXISTS UserBook (
+  UserBookID INT AUTO_INCREMENT,
+  userID INT NOT NULL,
+  ISBN VARCHAR(13) NOT NULL,
+  status VARCHAR(15) DEFAULT 'PENDING',
+  PRIMARY KEY (UserBookID),
+  FOREIGN KEY(userID) REFERENCES User(id) ON DELETE CASCADE,
+  FOREIGN KEY(ISBN) REFERENCES Book(ISBN) ON DELETE CASCADE
+);`;
+
+sqlStr += `\nCREATE TABLE IF NOT EXISTS AvailableCities (
+  LocationID INT AUTO_INCREMENT,
+  city VARCHAR(100) NOT NULL,
+  latitude DECIMAL(10, 8) NOT NULL,
+  longitude DECIMAL(11, 8) NOT NULL,
+  PRIMARY KEY (LocationID),
+  UNIQUE INDEX city_UNIQUE (city ASC)
+);`;
+
+sqlStr += `\nCREATE TABLE IF NOT EXISTS Driver (
+  DriverID INT AUTO_INCREMENT,
+  cityID INT NOT NULL,
+  firstName VARCHAR(20) NOT NULL,
+  lastName VARCHAR(20) NOT NULL,
+  phoneNumber VARCHAR(15) NOT NULL,
+  province VARCHAR(50) DEFAULT 'Ontario',
+  PRIMARY KEY (DriverID),
+  UNIQUE INDEX phoneNumber_UNIQUE (phoneNumber ASC),
+  FOREIGN KEY(cityID) REFERENCES AvailableCities(LocationID) ON DELETE CASCADE);`;
+
+sqlStr += `\nCREATE TABLE IF NOT EXISTS Delivery (
+  DeliveryID INT AUTO_INCREMENT,
+  DriverID INT NOT NULL,
+  ISBN VARCHAR(13) NOT NULL,
+  userID INT NOT NULL,
+  isComplete BOOLEAN DEFAULT 0, 
+  PRIMARY KEY (DeliveryID),
+  FOREIGN KEY(userID) REFERENCES User(id) ON DELETE CASCADE,
+  FOREIGN KEY(DriverID) REFERENCES Driver(DriverID) ON DELETE CASCADE,
+  FOREIGN KEY(ISBN) REFERENCES Book(ISBN) ON DELETE CASCADE
+);`;
+
+sqlStr += `\nCREATE TABLE IF NOT EXISTS ActionHistory (
   historyID INT AUTO_INCREMENT,
   userID INT NOT NULL,
   ISBN VARCHAR(13) NOT NULL,
@@ -76,15 +119,6 @@ sqlStr += `CREATE TABLE IF NOT EXISTS BorrowHistory (
   PRIMARY KEY (historyID),
   FOREIGN KEY(ISBN) REFERENCES Book(ISBN) ON DELETE CASCADE,
   FOREIGN KEY(userID) REFERENCES User(id) ON DELETE CASCADE);`;
-
-sqlStr += `CREATE TABLE IF NOT EXISTS UserBook (
-  UserBookID INT AUTO_INCREMENT,
-  userID INT NOT NULL,
-  ISBN VARCHAR(13) NOT NULL,
-  PRIMARY KEY (UserBookID),
-  FOREIGN KEY(userID) REFERENCES User(id) ON DELETE CASCADE,
-  FOREIGN KEY(ISBN) REFERENCES Book(ISBN) ON DELETE CASCADE
-);`;
 
 // Create the tables using the sql connection
 //
